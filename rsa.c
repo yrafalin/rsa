@@ -65,33 +65,6 @@ void modinv(mpz_t result, const mpz_t a, const mpz_t m)
     mpz_clears(m0, mc, ac, y, x, q, t, NULL);
 }
 
-// int modinv(int a, int m)
-// {
-//     int m0 = m;
-//     int y = 0, x = 1;
-
-//     if (m == 1)
-//         return 0;
-
-//     while (a > 1)
-//     {
-//         int q = a / m;
-//         int t = m;
-
-//         m = a % m;
-//         a = t;
-//         t = y;
-
-//         y = x - q * y;
-//         x = t;
-//     }
-
-//     if (x < 0)
-//         x += m0;
-
-//     return x;
-// }
-
 // Checks if the n is prime by dividing up to sqrt(n)
 bool isprime_naive(const mpz_t n)
 {
@@ -226,10 +199,6 @@ void encryptm(const mpz_t n, const mpz_t e, const char *msg, mpz_t enc)
     size_t len = strlen(msg);
 
     // Convert the message to a numerical representation using ASCII
-    // for (size_t i = 0; i < len; i++){
-    //     mpz_mul_ui(m,m,256);
-    //     mpz_add_ui(m,m, (uint8_t)msg[i]);
-    // }
     mpz_import(m, len, 1, 1, 0, 0, msg);
 
     // Compute the encrypted message C = M^e (mod n)
@@ -247,10 +216,6 @@ void decrypt(mpz_t n, mpz_t d, const mpz_t enc, char *dec)
     mpz_powm(m, enc, d, n);
 
     // Convert the decrypted message back to a string representation using ASCII
-    // size_t len = (mpz_sizeinbase(m, 2)+7)/8;
-    // for (int i = len-1; i>=0; i--){
-    //     dec[i] = (uint8_t)mpz_tdiv_q_ui(m, m, 256);
-    // }
 
     size_t len;
     //*dec = calloc(1 + (mpz_sizeinbase(m, 2)+7)/8, sizeof(char));
@@ -409,7 +374,10 @@ int main(int argc, char *argv[])
     
 
     switch (mode) {
+    case ENCRYPT_MODE: return encrypt_mode(msg, n_tmp, e_tmp, verb);
+    case DECRYPT_MODE: return decrypt_mode(msg, n_tmp, d_tmp, verb);
     case GENERATE_MODE:
+    default:
         //assert(p_bits % 64 == 0 && p_bits > 0);
         if (!(p_bits % 64 == 0 && p_bits > 0)){
             fprintf(stderr, "Security level (%lu) should be a positive multiple of 64\n", p_bits);
@@ -418,8 +386,5 @@ int main(int argc, char *argv[])
 
         if (verb == VERBOSE_MODE) printf("Encrypting at %lu bit security\n", p_bits);
         return generate_mode(msg, p_bits, verb);
-
-    case ENCRYPT_MODE: return encrypt_mode(msg, n_tmp, e_tmp, verb);
-    case DECRYPT_MODE: return decrypt_mode(msg, n_tmp, d_tmp, verb);
     }
 }
